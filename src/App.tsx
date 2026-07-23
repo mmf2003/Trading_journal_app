@@ -1,13 +1,7 @@
-
-import './App.css'
+import { AppRouter } from "./app/router/AppRouter";
 
 function App() {
-    return (
-        <main>
-            <h1>Trading Journal</h1>
-            <p>Professional trading analytics platform</p>
-        </main>
-    );
+    return <AppRouter />;
 }
 
 export default App;
