@@ -7,6 +7,9 @@ import { DashboardPage } from "../../pages/dashboard/DashboardPage";
 import { LoginPage } from "../../pages/login/LoginPage";
 import { RegisterPage } from "../../pages/register/RegisterPage";
 import { TradesPage } from "../../pages/trades/TradesPage";
+import { CalendarPage } from "../../pages/calendar/CalendarPage";
+import { SettingsPage } from "../../pages/settings/SettingsPage";
+import { StrategiesPage } from "../../pages/strategies/StrategiesPage";
 
 export function AppRouter() {
     return (
@@ -19,10 +22,11 @@ export function AppRouter() {
                 <Route index element={<Navigate to="/dashboard" replace />} />
 
                 <Route path="/dashboard" element={<DashboardPage />} />
-
                 <Route path="/trades" element={<TradesPage />} />
-
                 <Route path="/analytics" element={<AnalyticsPage />} />
+                <Route path="/calendar" element={<CalendarPage />} />
+                <Route path="/strategies" element={<StrategiesPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
