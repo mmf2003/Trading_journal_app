@@ -10,6 +10,7 @@ import { TradesPage } from "../../pages/trades/TradesPage";
 import { CalendarPage } from "../../pages/calendar/CalendarPage";
 import { SettingsPage } from "../../pages/settings/SettingsPage";
 import { StrategiesPage } from "../../pages/strategies/StrategiesPage";
+import { TradeCreatePage } from "../../pages/trade-create/TradeCreatePage";
 
 export function AppRouter() {
     return (
@@ -23,6 +24,7 @@ export function AppRouter() {
 
                 <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/trades" element={<TradesPage />} />
+                <Route path="/trades/new" element={<TradeCreatePage />} />
                 <Route path="/analytics" element={<AnalyticsPage />} />
                 <Route path="/calendar" element={<CalendarPage />} />
                 <Route path="/strategies" element={<StrategiesPage />} />

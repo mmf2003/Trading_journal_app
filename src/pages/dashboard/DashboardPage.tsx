@@ -1,5 +1,6 @@
 import { MetricCard } from "../../shared/ui/metric-card/MetricCard";
 import "./DashboardPage.css";
+import { Link } from "react-router-dom";
 
 const dashboardMetrics = [
     {
@@ -49,9 +50,9 @@ export function DashboardPage() {
                     <p>Review your trading results, risk and account performance.</p>
                 </div>
 
-                <button className="dashboard-page__button" type="button">
+                <Link className="dashboard-page__button" to="/trades/new">
                     Add trade
-                </button>
+                </Link>
             </div>
 
             <div className="dashboard-page__metrics">

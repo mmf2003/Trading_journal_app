@@ -4,6 +4,7 @@ import "./Header.css";
 const pageTitles: Record<string, string> = {
     "/dashboard": "Dashboard",
     "/trades": "Trades",
+    "/trades/new": "Add Trade",
     "/analytics": "Analytics",
     "/calendar": "Trading Calendar",
     "/strategies": "Strategies",
