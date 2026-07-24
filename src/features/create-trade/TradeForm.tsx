@@ -1,253 +1,334 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+
+import { calculateTrade } from "../../entities/trade/lib/calculateTrade";
+import { tradeSchema } from "../../entities/trade/model/tradeSchema";
+import type { TradeFormValues } from "../../entities/trade/model/types";
 
 import "./TradeForm.css";
-
-const tradeSchema = z.object({
-    symbol: z.string().trim().min(2, "Enter at least 2 characters").max(20, "Symbol is too long"),
-
-    direction: z.enum(["long", "short"]),
-
-    entryPrice: z
-        .number({
-            error: "Entry price is required",
-        })
-        .positive("Entry price must be greater than 0"),
-
-    exitPrice: z
-        .number({
-            error: "Exit price is required",
-        })
-        .positive("Exit price must be greater than 0"),
-
-    positionSize: z
-        .number({
-            error: "Position size is required",
-        })
-        .positive("Position size must be greater than 0"),
-
-    stopLoss: z
-        .number({
-            error: "Stop loss is required",
-        })
-        .positive("Stop loss must be greater than 0"),
-
-    takeProfit: z
-        .number({
-            error: "Take profit is required",
-        })
-        .positive("Take profit must be greater than 0"),
-
-    openedAt: z.string().min(1, "Open date is required"),
-
-    closedAt: z.string().min(1, "Close date is required"),
-
-    strategy: z.string().trim().optional(),
-
-    notes: z.string().trim().max(1000, "Notes are too long").optional(),
-});
-
-type TradeFormValues = z.infer<typeof tradeSchema>;
 
 export function TradeForm() {
     const {
         register,
         handleSubmit,
+        reset,
         formState: { errors, isSubmitting },
     } = useForm<TradeFormValues>({
         resolver: zodResolver(tradeSchema),
-
         defaultValues: {
             symbol: "",
             direction: "long",
+            commission: 0,
             strategy: "",
             notes: "",
         },
     });
 
     function handleCreateTrade(data: TradeFormValues) {
-        console.log("Trade form data:", data);
+        const calculations = calculateTrade(data);
+
+        const trade = {
+            ...data,
+            ...calculations,
+        };
+
+        console.log("Created trade:", trade);
+    }
+
+    function handleResetForm() {
+        reset({
+            symbol: "",
+            direction: "long",
+            commission: 0,
+            strategy: "",
+            notes: "",
+        });
     }
 
     return (
         <form className="trade-form" onSubmit={handleSubmit(handleCreateTrade)} noValidate>
-            <div className="trade-form__header">
-                <div>
+            <header className="trade-form__header">
+                <div className="trade-form__heading">
                     <p className="trade-form__eyebrow">Trade management</p>
+
                     <h2>Add new trade</h2>
-                    <p>Record the key details of your completed trade.</p>
+
+                    <p className="trade-form__description">
+                        Record the execution, risk management and additional information about your
+                        completed trade.
+                    </p>
                 </div>
 
-                <button className="trade-form__submit" type="submit" disabled={isSubmitting}>
-                    {isSubmitting ? "Saving..." : "Save trade"}
-                </button>
-            </div>
+                <div className="trade-form__actions">
+                    <button
+                        className="trade-form__button trade-form__button--secondary"
+                        type="button"
+                        onClick={handleResetForm}
+                        disabled={isSubmitting}
+                    >
+                        Clear
+                    </button>
 
-            <div className="trade-form__grid">
-                <div className="trade-form__field">
-                    <label htmlFor="symbol">Instrument</label>
+                    <button
+                        className="trade-form__button trade-form__button--primary"
+                        type="submit"
+                        disabled={isSubmitting}
+                    >
+                        {isSubmitting ? "Saving..." : "Save trade"}
+                    </button>
+                </div>
+            </header>
 
-                    <input id="symbol" type="text" placeholder="XAUUSD" {...register("symbol")} />
+            <section className="trade-form__section">
+                <div className="trade-form__section-header">
+                    <div className="trade-form__section-icon">01</div>
 
-                    {errors.symbol && (
-                        <span className="trade-form__error">{errors.symbol.message}</span>
-                    )}
+                    <div>
+                        <h3>Trade details</h3>
+                        <p>Enter the instrument, direction and execution details.</p>
+                    </div>
                 </div>
 
-                <div className="trade-form__field">
-                    <label htmlFor="direction">Direction</label>
+                <div className="trade-form__grid">
+                    <div className="trade-form__field">
+                        <label htmlFor="symbol">Instrument</label>
 
-                    <select id="direction" {...register("direction")}>
-                        <option value="long">Long</option>
-                        <option value="short">Short</option>
-                    </select>
+                        <input
+                            id="symbol"
+                            type="text"
+                            placeholder="XAUUSD"
+                            autoComplete="off"
+                            {...register("symbol")}
+                        />
 
-                    {errors.direction && (
-                        <span className="trade-form__error">{errors.direction.message}</span>
-                    )}
+                        {errors.symbol && (
+                            <span className="trade-form__error">{errors.symbol.message}</span>
+                        )}
+                    </div>
+
+                    <div className="trade-form__field">
+                        <label htmlFor="direction">Direction</label>
+
+                        <select id="direction" {...register("direction")}>
+                            <option value="long">Long</option>
+                            <option value="short">Short</option>
+                        </select>
+
+                        {errors.direction && (
+                            <span className="trade-form__error">{errors.direction.message}</span>
+                        )}
+                    </div>
+
+                    <div className="trade-form__field">
+                        <label htmlFor="entryPrice">Entry price</label>
+
+                        <input
+                            id="entryPrice"
+                            type="number"
+                            step="any"
+                            placeholder="3350.50"
+                            {...register("entryPrice", {
+                                valueAsNumber: true,
+                            })}
+                        />
+
+                        {errors.entryPrice && (
+                            <span className="trade-form__error">{errors.entryPrice.message}</span>
+                        )}
+                    </div>
+
+                    <div className="trade-form__field">
+                        <label htmlFor="exitPrice">Exit price</label>
+
+                        <input
+                            id="exitPrice"
+                            type="number"
+                            step="any"
+                            placeholder="3375.20"
+                            {...register("exitPrice", {
+                                valueAsNumber: true,
+                            })}
+                        />
+
+                        {errors.exitPrice && (
+                            <span className="trade-form__error">{errors.exitPrice.message}</span>
+                        )}
+                    </div>
+
+                    <div className="trade-form__field">
+                        <label htmlFor="positionSize">Position size</label>
+
+                        <input
+                            id="positionSize"
+                            type="number"
+                            step="any"
+                            placeholder="1"
+                            {...register("positionSize", {
+                                valueAsNumber: true,
+                            })}
+                        />
+
+                        {errors.positionSize && (
+                            <span className="trade-form__error">{errors.positionSize.message}</span>
+                        )}
+                    </div>
+
+                    <div className="trade-form__field">
+                        <label htmlFor="commission">Commission</label>
+
+                        <input
+                            id="commission"
+                            type="number"
+                            min="0"
+                            step="any"
+                            placeholder="0"
+                            {...register("commission", {
+                                valueAsNumber: true,
+                            })}
+                        />
+
+                        {errors.commission && (
+                            <span className="trade-form__error">{errors.commission.message}</span>
+                        )}
+                    </div>
+                </div>
+            </section>
+
+            <section className="trade-form__section">
+                <div className="trade-form__section-header">
+                    <div className="trade-form__section-icon">02</div>
+
+                    <div>
+                        <h3>Risk management</h3>
+                        <p>Define the protection and target levels for the trade.</p>
+                    </div>
                 </div>
 
-                <div className="trade-form__field">
-                    <label htmlFor="entryPrice">Entry price</label>
+                <div className="trade-form__grid">
+                    <div className="trade-form__field">
+                        <label htmlFor="stopLoss">Stop loss</label>
 
-                    <input
-                        id="entryPrice"
-                        type="number"
-                        step="any"
-                        placeholder="3350.50"
-                        {...register("entryPrice", {
-                            valueAsNumber: true,
-                        })}
-                    />
+                        <input
+                            id="stopLoss"
+                            type="number"
+                            step="any"
+                            placeholder="3338.00"
+                            {...register("stopLoss", {
+                                valueAsNumber: true,
+                            })}
+                        />
 
-                    {errors.entryPrice && (
-                        <span className="trade-form__error">{errors.entryPrice.message}</span>
-                    )}
+                        {errors.stopLoss && (
+                            <span className="trade-form__error">{errors.stopLoss.message}</span>
+                        )}
+                    </div>
+
+                    <div className="trade-form__field">
+                        <label htmlFor="takeProfit">Take profit</label>
+
+                        <input
+                            id="takeProfit"
+                            type="number"
+                            step="any"
+                            placeholder="3380.00"
+                            {...register("takeProfit", {
+                                valueAsNumber: true,
+                            })}
+                        />
+
+                        {errors.takeProfit && (
+                            <span className="trade-form__error">{errors.takeProfit.message}</span>
+                        )}
+                    </div>
+                </div>
+            </section>
+
+            <section className="trade-form__section">
+                <div className="trade-form__section-header">
+                    <div className="trade-form__section-icon">03</div>
+
+                    <div>
+                        <h3>Trade context</h3>
+                        <p>Add the strategy, execution time and personal notes.</p>
+                    </div>
                 </div>
 
-                <div className="trade-form__field">
-                    <label htmlFor="exitPrice">Exit price</label>
+                <div className="trade-form__grid">
+                    <div className="trade-form__field">
+                        <label htmlFor="strategy">Strategy</label>
 
-                    <input
-                        id="exitPrice"
-                        type="number"
-                        step="any"
-                        placeholder="3375.20"
-                        {...register("exitPrice", {
-                            valueAsNumber: true,
-                        })}
-                    />
+                        <input
+                            id="strategy"
+                            type="text"
+                            placeholder="Turtle Soup"
+                            autoComplete="off"
+                            {...register("strategy")}
+                        />
 
-                    {errors.exitPrice && (
-                        <span className="trade-form__error">{errors.exitPrice.message}</span>
-                    )}
+                        {errors.strategy && (
+                            <span className="trade-form__error">{errors.strategy.message}</span>
+                        )}
+                    </div>
+
+                    <div className="trade-form__field">
+                        <label htmlFor="openedAt">Opened at</label>
+
+                        <input id="openedAt" type="datetime-local" {...register("openedAt")} />
+
+                        {errors.openedAt && (
+                            <span className="trade-form__error">{errors.openedAt.message}</span>
+                        )}
+                    </div>
+
+                    <div className="trade-form__field">
+                        <label htmlFor="closedAt">Closed at</label>
+
+                        <input id="closedAt" type="datetime-local" {...register("closedAt")} />
+
+                        {errors.closedAt && (
+                            <span className="trade-form__error">{errors.closedAt.message}</span>
+                        )}
+                    </div>
+
+                    <div className="trade-form__field trade-form__field--full">
+                        <label htmlFor="notes">Notes</label>
+
+                        <textarea
+                            id="notes"
+                            rows={5}
+                            placeholder="Describe the setup, execution and result..."
+                            {...register("notes")}
+                        />
+
+                        {errors.notes && (
+                            <span className="trade-form__error">{errors.notes.message}</span>
+                        )}
+                    </div>
                 </div>
+            </section>
 
-                <div className="trade-form__field">
-                    <label htmlFor="positionSize">Position size</label>
+            <footer className="trade-form__footer">
+                <p>Review the entered information before saving the trade.</p>
 
-                    <input
-                        id="positionSize"
-                        type="number"
-                        step="any"
-                        placeholder="1"
-                        {...register("positionSize", {
-                            valueAsNumber: true,
-                        })}
-                    />
+                <div className="trade-form__actions">
+                    <button
+                        className="trade-form__button trade-form__button--secondary"
+                        type="button"
+                        onClick={handleResetForm}
+                        disabled={isSubmitting}
+                    >
+                        Clear form
+                    </button>
 
-                    {errors.positionSize && (
-                        <span className="trade-form__error">{errors.positionSize.message}</span>
-                    )}
+                    <button
+                        className="trade-form__button trade-form__button--primary"
+                        type="submit"
+                        disabled={isSubmitting}
+                    >
+                        {isSubmitting ? "Saving..." : "Save trade"}
+                    </button>
                 </div>
-
-                <div className="trade-form__field">
-                    <label htmlFor="stopLoss">Stop loss</label>
-
-                    <input
-                        id="stopLoss"
-                        type="number"
-                        step="any"
-                        placeholder="3338.00"
-                        {...register("stopLoss", {
-                            valueAsNumber: true,
-                        })}
-                    />
-
-                    {errors.stopLoss && (
-                        <span className="trade-form__error">{errors.stopLoss.message}</span>
-                    )}
-                </div>
-
-                <div className="trade-form__field">
-                    <label htmlFor="takeProfit">Take profit</label>
-
-                    <input
-                        id="takeProfit"
-                        type="number"
-                        step="any"
-                        placeholder="3380.00"
-                        {...register("takeProfit", {
-                            valueAsNumber: true,
-                        })}
-                    />
-
-                    {errors.takeProfit && (
-                        <span className="trade-form__error">{errors.takeProfit.message}</span>
-                    )}
-                </div>
-
-                <div className="trade-form__field">
-                    <label htmlFor="strategy">Strategy</label>
-
-                    <input
-                        id="strategy"
-                        type="text"
-                        placeholder="Turtle Soup"
-                        {...register("strategy")}
-                    />
-
-                    {errors.strategy && (
-                        <span className="trade-form__error">{errors.strategy.message}</span>
-                    )}
-                </div>
-
-                <div className="trade-form__field">
-                    <label htmlFor="openedAt">Opened at</label>
-
-                    <input id="openedAt" type="datetime-local" {...register("openedAt")} />
-
-                    {errors.openedAt && (
-                        <span className="trade-form__error">{errors.openedAt.message}</span>
-                    )}
-                </div>
-
-                <div className="trade-form__field">
-                    <label htmlFor="closedAt">Closed at</label>
-
-                    <input id="closedAt" type="datetime-local" {...register("closedAt")} />
-
-                    {errors.closedAt && (
-                        <span className="trade-form__error">{errors.closedAt.message}</span>
-                    )}
-                </div>
-
-                <div className="trade-form__field trade-form__field--full">
-                    <label htmlFor="notes">Notes</label>
-
-                    <textarea
-                        id="notes"
-                        rows={6}
-                        placeholder="Describe the setup, execution and result..."
-                        {...register("notes")}
-                    />
-
-                    {errors.notes && (
-                        <span className="trade-form__error">{errors.notes.message}</span>
-                    )}
-                </div>
-            </div>
+            </footer>
         </form>
     );
 }
